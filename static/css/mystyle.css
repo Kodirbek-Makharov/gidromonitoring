@@ -1,0 +1,18 @@
+.dalolatnoma_one img {
+  display: inline-block;
+  width: 150px;
+  margin: 5px;
+}
+
+.info-height {
+  height: 125px;
+}
+
+/* li.active-result {
+  word-wrap: break-word;
+  max-width: 300px;
+} */
+
+.chosen-container {
+  max-width: 275px;
+}

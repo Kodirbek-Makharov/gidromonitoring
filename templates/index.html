@@ -1,0 +1,351 @@
+{% extends "layout.html" %}
+{% load static %}
+
+
+{% block main %}
+
+<div class="container-lg">
+    <!-- nhtlar bo'yicha -->
+    {% comment %}
+    {% for g in g1 %}
+    {{g.nomi}} {{g.oy}} {{g.soni}} <br />
+    {% endfor %}
+    {% endcomment %}
+
+    <div class="row">
+        {% for nomi, soni in g2.items %}
+
+        <div class="col">
+            <div class="card mb-4 text-white bg-info info-height">
+                <div class="card-body pb-0 d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="fs-4 fw-semibold">{{ soni.0 }}</div>
+                        <div>{{nomi}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if soni.1 == 2 %}
+        <div class="w-100"></div>
+        {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+    <!-- xarita -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-2">
+                    <input type="date" id="sanadan" name="sanadan" class="form-control ">
+                </div>
+                <div class="col-2">
+                    <input type="date" id="sanagacha" name="sanagacha" class="form-control col-2">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="xarita_button" style="display: none;">Ko'rsatish</button>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- viloyatlar kesimida -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between" data-coreui-toggle="collapse" data-coreui-target="#collapse_viloyat" aria-expanded="false" aria-controls="collapse_viloyat">
+                <div>
+                    <h4 class="card-title mb-0">Dalolatnomalar (viloyatlar kesimida)</h4>
+                    <div class="small text-medium-emphasis">Yanvar - Dekabr {% now 'Y' %} ({% now 'Y-m-d' %})</div>
+                </div>
+            </div>
+            <style>
+                tbody:hover td[rowspan],
+                tr:hover td {
+                    background: gainsboro;
+                }
+            </style>
+            <div class="collapse" id="collapse_viloyat">
+                <table class="table border-primary table-responsive">
+                    <tr>
+                        <th>Viloyat</th>
+                        <th>Noqonuniy holat</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
+                        <th>8</th>
+                        <th>9</th>
+                        <th>10</th>
+                        <th>11</th>
+                        <th>12</th>
+                    </tr>
+                    {% for k,v in vdict.items %}
+                    <tbody class="table-group-divider">
+                        {% for vk,vv in v.items %}
+                        <tr>
+                            {% if forloop.counter == 1 %}
+                            <td rowspan="7">{{ k }}</td>
+                            {% endif %}
+                            <td>{{vk}}</td>
+                            {% for oy, soni in vv %}
+                            <td>{{soni}}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- inspektorlar kesimida -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between" data-coreui-toggle="collapse" data-coreui-target="#collapse_inspektor" aria-expanded="false" aria-controls="collapse_inspektor">
+                <div>
+                    <h4 class="card-title mb-0">Dalolatnomalar (inspektorlar kesimida)</h4>
+                    <div class="small text-medium-emphasis">Yanvar - Dekabr {% now 'Y' %} ({% now 'Y-m-d' %})</div>
+                </div>
+            </div>
+            <div class="collapse" id="collapse_inspektor">
+                <table class="table border-primary table-responsive">
+                    <tr>
+                        <th>Inspektor</th>
+                        <th>Noqonuniy holat</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
+                        <th>8</th>
+                        <th>9</th>
+                        <th>10</th>
+                        <th>11</th>
+                        <th>12</th>
+                    </tr>
+                    {% for k,v in udict.items %}
+                    <tbody class="table-group-divider">
+                        {% for vk,vv in v.items %}
+                        <tr>
+                            {% if forloop.counter == 1 %}
+                            <td rowspan="7">{{ k }}</td>
+                            {% endif %}
+                            <td>{{vk}}</td>
+                            {% for oy, soni in vv %}
+                            <td>{{soni}}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- grafik nhtlar bo'yicha -->
+    <!-- <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h4 class="card-title mb-0">Dalolatnomalar</h4>
+                    <div class="small text-medium-emphasis">Yanvar - Dekabr {% now 'Y' %} ({% now 'Y-m-d' %})</div>
+                </div>
+            </div>
+            <div class="c-chart-wrapper" style="height:300px;margin-top:40px;">
+                <canvas class="chart" id="main-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+
+{% endblock main %}
+
+{% block customcss %}
+<link rel="stylesheet" href="{% static 'vendors/@coreui/chartjs/css/coreui-chartjs.css' %}">
+<link rel="stylesheet" href="{% static 'vendors/leaflet/leaflet.css' %}" />
+<style>
+    .maplink {
+        cursor: pointer;
+        color: blue;
+        text-decoration: underline;
+    }
+
+    #map {
+        height: 580px;
+    }
+
+    img.qizilmarker {
+        filter: hue-rotate(150deg);
+    }
+
+    img.yashilmarker {
+        filter: hue-rotate(270deg);
+    }
+
+    img.sariqmarker {
+        filter: hue-rotate(220deg) saturate(140%) invert(15%) brightness(180%);
+    }
+</style>
+
+{% endblock customcss %}
+
+{% block customjs %}
+<script src="{% static 'vendors/chart.js/js/chart.min.js' %}"></script>
+<script src="{% static 'vendors/@coreui/chartjs/js/coreui-chartjs.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
+<script>
+    let xarita = [];
+    let markers = [];
+    let map = L.map('map', { 'attributionControl': false }).setView([41.07544905206866, 65.04802820184263], 6);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    map.invalidateSize();
+
+
+    document.getElementById('xarita_button').addEventListener('click', function () {
+        let sanadan = document.getElementById('sanadan').value;
+        let sanagacha = document.getElementById('sanagacha').value;
+        let fd = new FormData();
+        console.log(sanadan);
+        fd.append('sanadan', sanadan);
+        fd.append('sanagacha', sanagacha);
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        $.ajax({
+            type: 'POST',
+            url: '{% url "xarita_from_to" %}',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                for (marker of markers) {
+                    map.removeLayer(marker);
+                }
+
+                xarita = res.xarita;
+                xarita.forEach(element => {
+                    // let ksana = new Date(element.created_at).toISOString().split('T')[0];
+                    const lat = parseFloat(element.lat);
+                    const lng = parseFloat(element.lng);
+                    var marker = L.marker([lat, lng]).addTo(map);
+                    if (element.bartaraf_etilganligi == true) {
+                        marker._icon.classList.add("yashilmarker");
+                    }
+                    else if (element.bartaraf_etilmagan == true) {
+                        marker._icon.classList.add("qizilmarker");
+                    }
+                    else {
+                        marker._icon.classList.add("sariqmarker");
+                    }
+                    let link = "{% url 'dalolatnoma_one' 12345 %}".replace(/12345/, element.pk);
+                    marker.bindPopup(`<a href='${link}' target=_blank>${element.korsatma_raqam}</a>
+                            <br>${element.created_at.split('T')[0]}
+                            <br><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Google xaritada ko'rish</a>
+                            `);
+                    markers.push(marker);
+                });
+
+
+                // $('#id_tuman').empty();
+                // $.each(res.tumanlar, function (i, tuman) {
+                //     $('#id_tuman').append(`<option value="${tuman[0]}">${tuman[1]}</option>`);
+                // });
+                map.invalidateSize();
+
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ":" + xhr.responseText)
+            }
+        })
+
+    });
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        document.getElementById('xarita_button').click()
+    });
+    document.getElementById('sanadan').addEventListener("change", function (event) {
+        document.getElementById('xarita_button').click()
+    });
+    document.getElementById('sanagacha').addEventListener("change", function (event) {
+        document.getElementById('xarita_button').click()
+    });
+
+    // line chart
+    const data = JSON.parse("{{ g3|escapejs }}");
+    colors = ['red', 'green', 'blue', 'black', 'aqua', 'orange', 'black'];
+    datag = data.map((item, index) => {
+        return {
+            label: item[0],
+            backgroundColor: coreui.Utils.hexToRgba(coreui.Utils.getStyle('--cui-info'), 10),
+            borderColor: colors[index],
+            pointHoverBackgroundColor: '#fff',
+            borderWidth: 2,
+            data: item[1],
+        }
+    })
+    // console.log(datag);
+    const mainChart = new Chart(document.getElementById('main-chart'), {
+        type: 'line',
+        data: {
+            labels: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', "Avgust", 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'],
+            datasets: datag
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    // align: 'start',
+                    labels: {
+                        boxHeight: 1,
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        font: { size: 15 }
+                    }
+                },
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        maxTicksLimit: 5,
+                        stepSize: Math.ceil(250 / 5),
+                        max: 250,
+                        font: { size: 15 }
+                    }
+                }
+            },
+            elements: {
+                line: {
+                    tension: 0.4
+                },
+                point: {
+                    radius: 2,
+                    hitRadius: 10,
+                    hoverRadius: 4,
+                    hoverBorderWidth: 3
+                }
+            }
+        }
+    });
+</script>
+{% endblock customjs %}

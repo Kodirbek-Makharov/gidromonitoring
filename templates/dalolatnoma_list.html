@@ -1,0 +1,425 @@
+{% extends "layout.html" %}
+{% load my_filters %}
+{% load static %}
+{% load tz %}
+
+{% block main %}
+<!-- {% include 'messages.html' %} -->
+<div class="container-lg">
+    {% if request.user|has_group:"administrator" or request.user.is_superuser %}
+    <div id="info_ws"></div>
+    {% endif %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h4 class="card-title mb-0">Dalolatnomalar ro'yxati</h4>
+                    Barchasi: {{ count_all }}<br>
+                    Bartaraf etilganlar: {{ count_done }}<br>
+                    Jarayonda: {{ count_progress }}<br>
+                    Bartaraf etilmaganlar: {{ count_failed }}
+                </div>
+                <h3 class="float-end">
+                    <form method="post"><input type="hidden" name="excel" value="1">
+                        {% csrf_token %}
+                        <button type="submit" class="btn"><img width="45" src="{% static 'icons/icons8-excel.svg' %}" alt="Excel"></button>
+                    </form>
+                </h3>
+            </div>
+            <table class="table mb-4 table-hover">
+                <thead class="thead-inverse">
+                    {% if request.user|has_group:"administrator" or request.user|has_group:"inspeksiya" or request.user.is_superuser %}
+                    <tr>
+                        <form method="get" id="search_form">
+                            <th colspan="2" width="10%">
+                                <input type="date" name="sana1" onchange="this.form.submit()" value="{{p_sana1}}" id="sanadan">
+                                <input type="date" name="sana2" onchange="this.form.submit()" value="{{p_sana2}}" id="sanagacha">
+                            </th>
+                            <th width="45%"><select name="nht" onchange="this.form.submit()" id="nht">
+                                    <option value="">-----------------</option>
+                                    {% for nht in nhtlar %}
+                                    {% if nht.id == p_nht %}
+                                    <option value="{{nht.id}}" selected="selected">{{nht}}</option>
+                                    {% else %}
+                                    <option value="{{nht.id}}">{{nht}}</option>
+                                    {%endif%}
+                                    {% endfor %}
+                                </select></th>
+                            <th width="15%"><select name="viloyat" onchange="this.form.submit()" id="viloyat">
+                                    <option value="">-----------------</option>
+                                    {% for v in viloyatlar %}
+                                    {% if v.id == p_viloyat %}
+                                    <option value="{{v.id}}" selected="selected">{{v}}</option>
+                                    {% else %}
+                                    <option value="{{v.id}}">{{v}}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select></th>
+                            <th width="15%"><select name="inspektor" onchange="this.form.submit()" id="inspektor">
+                                    <option value="">-----------------</option>
+                                    {% for i in inspektorlar %}
+                                    {% if i.id == p_inspektor %}
+                                    <option value="{{i.id}}" selected>{{i.first_name|default:i}}</option>
+                                    {% else %}
+                                    <option value="{{i.id}}">{{i.first_name|default:i}}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select></th>
+                            <th width="15%"><select name="bartaraf_etilganligi" onchange="this.form.submit()" id="holati">
+                                    <option value="">-----------------</option>
+                                    {% if p_bartaraf is True %}
+                                    <option value="1" selected>Bartaraf etilgan</option>
+                                    {% else %}
+                                    <option value="1">Bartaraf etilgan</option>
+                                    {% endif %}
+                                    {% if p_bartaraf is False %}
+                                    <option value="0" selected>Bartaraf etilmagan</option>
+                                    {% else %}
+                                    <option value="0">Bartaraf etilmagan</option>
+                                    {% endif %}
+                                </select> </th>
+                        </form>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th colspan="2">Ko'rsatma</th>
+                        <th>Noqonuniy holat turi</th>
+                        <th>Viloyat</th>
+                        {% if request.user|has_group:"administrator" or request.user|has_group:"inspeksiya" or request.user.is_superuser %}
+                        <th>Inspektor</th>
+                        <th>Bartaraf etilganligi</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in dlist %}
+                    <!-- <tr class='{{d.bartaraf_etilganligi|yesno:"bg-success,bg-danger,"}} bg-opacity-75'> -->
+                    <tr class='
+                    {% if d.bartaraf_etilganligi is True %}
+                    bg-success
+                    {% elif d.bartaraf_etilmagan is True %}
+                    bg-danger
+                    {% endif %}
+                    bg-opacity-75'>
+                        <td><a href="{% url 'dalolatnoma_one' d.pk %}">{{ d.korsatma_raqam }}</a></td>
+                        <td>{{ d.korsatma_sana|date:"Y.m.d" }}</td>
+                        <td>{{ d.noqonuniy_holat_turi }}</td>
+                        <td>{{ d.tuman.viloyat }} </td>
+                        {% if request.user|has_group:"administrator" or request.user|has_group:"inspeksiya" or request.user.is_superuser %}
+                        <td>{{ d.inspektor.first_name }}</td>
+                        <td>
+                            {% if d.bartaraf_etilganligi is False %}
+                            {% if d.bartaraf_etilganligi_hujjati.name %}
+                            <a href="{{d.bartaraf_etilganligi_hujjati.url}}">Hujjatni ko'rish</a>
+                            {% if request.user|has_group:"administrator" or request.user.is_superuser %}
+                            <br><a href="{% url 'bartaraf_etildi_admin' d.pk %}">Tasdiqlash</a>
+
+                            {% endif %}
+                            {% else %}
+
+                            <a data-coreui-toggle="collapse" href="#clp{{d.pk}}" role="button" aria-expanded="false" aria-controls="clp{{d.pk}}">
+                                <i class='cil-check-circle icon icon-xl'></i>
+                            </a>
+
+                            <div class="collapse" id="clp{{d.pk}}">
+
+                                {% if request.user|has_group:"inspeksiya" or request.user.is_superuser %}
+                                <form action="{% url 'bartaraf_etildi' d.pk %}" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="file" name="file" id="file-{{d.pk}}" class="inputfile inputfile-2" required>
+                                    <label for="file-{{d.pk}}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
+                                            <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"></path>
+                                        </svg> <span>Choose a file…</span></label>
+                                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            {% if dlist.has_other_pages %}
+            <nav aria-label="dlist pagination" class="">
+                <ul class="pagination">
+                    {% if dlist.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ dlist.previous_page_number }}{{ p_query }}">Oldingi</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Oldingi</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in dlist.paginator.page_range %}
+                    {% if dlist.number == page_num %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_num }}
+                            <span class="sr-only">(joriy)</span>
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_num }}{{ p_query }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if dlist.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ dlist.next_page_number }}{{ p_query }}">Keyingi</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Keyingi</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock main %}
+
+{% block customcss %}
+<link rel="stylesheet" href="{% static 'vendors/chosen/chosen.css' %}" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    .inputfile {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+    }
+
+    .inputfile-2+label {
+        color: #d3394c;
+        border: 2px solid currentColor;
+    }
+
+    .inputfile-2:focus+label,
+    .inputfile-2.has-focus+label,
+    .inputfile-2+label:hover {
+        color: #722040;
+    }
+
+    .inputfile+label {
+        max-width: 80%;
+        font-size: 1rem;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        display: inline-block;
+        overflow: hidden;
+        padding: 0.5rem 1.2rem;
+    }
+
+    .inputfile+label svg {
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+        fill: currentColor;
+        margin-top: -0.25em;
+        margin-right: 0.25em;
+    }
+</style>
+
+<link rel="stylesheet" href="{% static 'vendors/leaflet/leaflet.css' %}" />
+<style>
+    .maplink {
+        cursor: pointer;
+        color: blue;
+        text-decoration: underline;
+    }
+
+    #map {
+        height: 580px;
+    }
+
+    img.qizilmarker {
+        filter: hue-rotate(150deg);
+    }
+
+    img.yashilmarker {
+        filter: hue-rotate(270deg);
+    }
+
+    img.sariqmarker {
+        filter: hue-rotate(220deg) saturate(140%) invert(15%) brightness(180%);
+    }
+</style>
+
+{% endblock %}
+
+{% block customjs %}
+<script src="{% static 'vendors/chosen/chosen.jquery.min.js' %}" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    $('select').chosen();
+    $('select').trigger('chosen:updated');
+
+    $('.inputfile').change(function (e) {
+        var name = $(this);
+
+        elem = name[0];
+        let label = elem.nextElementSibling;
+        label.querySelector('span').innerHTML = fileName;
+        labelVal = label.innerHTML;
+
+        var fileName = '';
+        fileName = elem.value.split('\\').pop();
+
+        if (fileName)
+            label.querySelector('span').innerHTML = fileName;
+        else
+            label.innerHTML = labelVal;
+
+    });
+
+    // setup chat socket
+    const notifyScoket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/notify/'
+    );
+
+    // on socket open
+    notifyScoket.onopen = function (e) {
+        console.log('Socket successfully connected.');
+    };
+
+    // on socket close
+    notifyScoket.onclose = function (e) {
+        console.log('Socket closed unexpectedly');
+    };
+
+    // on receiving message on group
+    notifyScoket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        console.log(data);
+        const message = data.message[0];
+        const inspektor = data.message[1];
+        const id = data.message[2];
+        // Call the setMessage function to add the new li element
+        setMessage(message, inspektor, id);
+
+    };
+
+    function setMessage(message, inspektor, id) {
+
+        // location.reload(true);
+        document.getElementById('info_ws').innerHTML += `
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <a href="/${id}"><strong>Yangi dalolatnoma: </strong> ${message} (${inspektor}).</a>
+            <button type="button" class="btn-close" data-coreui-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+        console.log(message);
+    }
+
+</script>
+
+<script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
+<script>
+    let xarita = [];
+    let markers = [];
+    let map = L.map('map', { 'attributionControl': false }).setView([41.07544905206866, 65.04802820184263], 6);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    map.invalidateSize();
+
+
+    function submit_form() {
+        // event.preventDefault();
+        let sanadan = document.getElementById('sanadan') ? document.getElementById('sanadan').value : null;
+        let sanagacha = document.getElementById('sanagacha') ? document.getElementById('sanagacha').value : null;
+        let holati = document.getElementById('holati') ? document.getElementById('holati').value : null;
+        let viloyat = document.getElementById('viloyat') ? document.getElementById('viloyat').value : null;
+        let inspektor = document.getElementById('inspektor') ? document.getElementById('inspektor').value : null;
+        let nht = document.getElementById('nht') ? document.getElementById('nht').value : null;
+
+        let fd = new FormData();
+        console.log(sanadan);
+        if (sanadan != null)
+            fd.append('sanadan', sanadan);
+        if (sanagacha != null)
+            fd.append('sanagacha', sanagacha);
+        if (holati != null)
+            fd.append('holati', holati);
+        if (inspektor != null)
+            fd.append('inspektor', inspektor);
+        if (nht != null)
+            fd.append('nht', nht);
+        if (viloyat != null)
+            fd.append('viloyat', viloyat);
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        $.ajax({
+            type: 'POST',
+            url: '{% url "xarita_from_to" %}',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                for (marker of markers) {
+                    map.removeLayer(marker);
+                }
+
+                xarita = res.xarita;
+                xarita.forEach(element => {
+                    // let ksana = new Date(element.created_at).toISOString().split('T')[0];
+                    const lat = parseFloat(element.lat);
+                    const lng = parseFloat(element.lng);
+                    var marker = L.marker([lat, lng]).addTo(map);
+                    if (element.bartaraf_etilganligi == true) {
+                        marker._icon.classList.add("yashilmarker");
+                    }
+                    else if (element.bartaraf_etilmagan == true) {
+                        marker._icon.classList.add("qizilmarker");
+                    }
+                    else {
+                        marker._icon.classList.add("sariqmarker");
+                    }
+                    let link = "{% url 'dalolatnoma_one' 12345 %}".replace(/12345/, element.pk);
+                    marker.bindPopup(`<a href='${link}' target=_blank>${element.korsatma_raqam}</a>
+                            <br>${element.created_at.split('T')[0]}
+                            <br><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Google xaritada ko'rish</a>
+                            
+                            `);
+                    markers.push(marker);
+                });
+
+                map.invalidateSize();
+
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ":" + xhr.responseText)
+            }
+        })
+
+    }
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        // document.getElementById('xarita_button').click();
+        setTimeout(submit_form, 2000)
+    });
+
+</script>
+{% endblock %}

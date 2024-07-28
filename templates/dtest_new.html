@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block main %}
+<!-- {% include 'messages.html' %} -->
+
+<div class="container-lg">
+    <div class="row">
+
+        <label>Title</label>
+        <input type="text" id="title" class="form-control">
+        <label>Description</label>
+        <textarea id="description" class="form-control"></textarea>
+
+        <input type="file" multiple class="form-control">
+
+        <button type="button" id="saveBtn" class="btn btn-primary mt-4">Save</button>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var files = []
+                FilePond.registerPlugin(FilePondPluginFileValidateSize);
+                FilePond.registerPlugin(FilePondPluginFileValidateType);
+                FilePond.registerPlugin(FilePondPluginImagePreview);
+                FilePond.registerPlugin(FilePondPluginImageResize);
+                FilePond.registerPlugin(FilePondPluginImageTransform);
+                FilePond.setOptions({
+                    allowMultiple: true,
+                    maxFiles: 10,
+                    maxFileSize: '10MB'
+                })
+                const inputElement = document.querySelector('input[type="file"]');
+                const pond = FilePond.create(inputElement, {
+                    acceptedFileTypes: ['image/png', 'image/jpeg'],
+                    imageResizeTargetWidth: 2000,
+                    labelIdle: 'Rasmlarni yuklang: JPG, PNG formatda, maksimal hajmi 10 MB',
+
+                    onaddfile: (err, fileItem) => {
+                        if (!err) {
+                            files.push(fileItem.file)
+                        }
+                        console.log(files)
+                    },
+                    onremovefile: (err, fileItem) => {
+                        const index = files.indexOf(fileItem.file)
+                        if (index > -1) {
+                            files.splice(index, 1)
+                        }
+                        console.log(files)
+                    }
+                });
+
+                var formData = new FormData();
+                $(document).on('click', '#saveBtn', function (e) {
+                    formData.append('length', files.length)
+                    formData.append('title', $('#title').val())
+                    formData.append('description', $('#description').val())
+                    for (var i = 0; i < files.length; i++) {
+                        formData.append('images' + i, files[i])
+                    }
+                    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "dalolatnoma_new" %}',
+                        data: formData,
+                        cache: false,
+                        processData: false,
+                        contentType: false,
+                        enctype: 'multipart/form-data',
+                        success: function () {
+                            alert('The post has been created!')
+                        },
+                        error: function (xhr, errmsg, err) {
+                            console.log(xhr.status + ":" + xhr.responseText)
+                        }
+                    })
+                })
+            })
+        </script>
+
+    </div>
+    <!-- /.row-->
+</div>
+{% endblock main %}
+
+{% block customcss %}
+<link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+
+<!-- <style>
+    .filepond--root,
+    .filepond--root .filepond--drop-label {
+        width: 200px !important;
+    }
+</style> -->
+{% endblock customcss %}
+
+{% block customjs %}
+<!-- FilePond Stuff -->
+<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+<script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+<script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+<script src="https://unpkg.com/filepond-plugin-image-resize/dist/filepond-plugin-image-resize.js"></script>
+<script src="https://unpkg.com/filepond-plugin-image-transform/dist/filepond-plugin-image-transform.js"></script>
+{% endblock customjs %}

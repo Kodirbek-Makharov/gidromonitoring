@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+{% load static %}
+
+
+{% block main %}
+
+<div class="container-lg">
+
+    <div class="card mb-4 dalolatnoma_one">
+        <div class="card-body">
+            <div class="">
+                <h4 class="card-title mb-4">Dalolatnoma: {{ d.korsatma_raqam }} ({{ d.korsatma_sana|date:"Y.m.d" }})</h4>
+                {# <a href="{% url 'dalolatnoma_edit' d.pk %}">Edit</a>#}
+                <div class="row mb-3">
+                    <div class="col-sm-2">Noqonuniy holat</div>
+                    <div class="col-sm-10">{{d.noqonuniy_holat_turi}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Huquqbuzar turi</div>
+                    <div class="col-sm-10">{{d.huquqbuzar_turi}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Huquqbuzar nomi</div>
+                    <div class="col-sm-10">{{d.huquqbuzar_nomi}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">{% if d.huquqbuzar_turi == "yuridik" %}INN{%else%}JSHSHIR{%endif%}</div>
+                    <div class="col-sm-10">{{d.huquqbuzar_stir}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Huquqbuzar manzili</div>
+                    <div class="col-sm-10">{{d.tuman.viloyat}}, {{d.tuman}}, {{d.tuman.orientir}}
+
+                        <!-- Button trigger modal -->
+                        <span class="maplink" data-coreui-toggle="modal" data-coreui-target="#exampleModal">
+                            Xaritada ko'rish
+                        </span>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="map">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Yopish</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- <a target="_blank" href="https://www.google.com/maps/search/?api=1&query={{d.lat}},{{d.lng}}">Kartada ko'rish</a> -->
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Stansiya</div>
+                    <div class="col-sm-10">{{d.stansiya}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Ko'rsatma</div>
+                    <div class="col-sm-10">{{d.korsatma_raqam}} ({{d.korsatma_sana|date:"Y.m.d"}})</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Bartaraf etilganligi (amal qilish muddati)</div>
+                    <div class="col-sm-10">{{d.bartaraf_etilganligi|yesno:"Etilgan,Etilmagan"}}
+                        {% if d.bartaraf_etilganligi is True %}
+                        <a href="{{ d.bartaraf_etilganligi_hujjati.url|default_if_none:'#' }}" target="_blank">Faylni ko'rish</a>
+                        {% else %}
+                        (muddati: {{d.amal_qilish_muddati|date:"Y.m.d"}}) <br>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Rasmlar</div>
+                    <div class="col-sm-10">
+                        <img src="/uploads/{{d.korsatma_rasm_qogoz}}" alt="ko'rsatma-qog'oz">
+                        <img src="/uploads/{{d.korsatma_rasm_odam}}" alt="ko'rsatma-odam">
+                        {% for p in d.dalolatnomarasm_set.all %}
+                        <img src="/uploads/{{p.rasm}}" alt="">
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock main %}
+
+{% block customcss %}
+<link rel="stylesheet" href="{% static 'vendors/leaflet/leaflet.css' %}" />
+<style>
+    .maplink {
+        cursor: pointer;
+        color: blue;
+        text-decoration: underline;
+    }
+
+    #map {
+        height: 580px;
+    }
+
+    img.qizilmarker {
+        filter: hue-rotate(240deg);
+    }
+</style>
+{% endblock customcss %}
+{% block customjs %}
+<script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
+<script>
+    const lat = parseFloat("{{ d.lat }}");
+    const lng = parseFloat("{{ d.lng }}");
+    console.log(lat, lng);
+    var map = L.map('map').setView([lat, lng], 15);
+    var marker = L.marker([lat, lng]).addTo(map);
+    // var marker = L.marker([lat + 0.005, lng]).addTo(map);
+    // marker._icon.classList.add("qizilmarker");
+    // marker.bindPopup("<a href='http://kiut.uz'>Hello world!</a><br>I am a popup.");//.openPopup();
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    map.invalidateSize();
+    $('#exampleModal').on('shown.coreui.modal', function () {
+        map.invalidateSize();
+    });
+</script>
+{% endblock customjs %}

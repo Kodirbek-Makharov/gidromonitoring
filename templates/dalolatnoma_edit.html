@@ -1,0 +1,301 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block main %}
+<!-- {% include 'messages.html' %} -->
+
+<div class="container-lg">
+    <div class="row">
+
+        <form action="" method='POST' enctype="multipart/form-data" id="myform">
+            <h4>Yangi dalolatnoma</h4>
+            {% csrf_token %}
+
+            {% if form.errors %}
+            Errors:
+            <ul>
+                {% for key,value in form.errors.items %}
+                <li>{{ key|escape }} : {{ value|escape }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.noqonuniy_holat_turi.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.noqonuniy_holat_turi}}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.huquqbuzar_turi.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.huquqbuzar_turi}}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.huquqbuzar_nomi.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.huquqbuzar_nomi}}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.huquqbuzar_stir.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.huquqbuzar_stir}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.viloyat.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.viloyat}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.tuman.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.tuman}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.orientir.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.orientir}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.lat.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.lat}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.lng.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.lng}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <div class="info float-start offset-sm-2" id="geoinfo"></div>
+                    <button type="button" class="btn btn-warning float-end" onclick="getLocation()">Geolokatsiyani aniqlash</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.stansiya.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.stansiya}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.korsatma_raqam.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.korsatma_raqam}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{d_form.korsatma_sana.label}}</label>
+                <div class="col-sm-10">
+                    {{d_form.korsatma_sana}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Ko'rsatma rasmlari</label>
+                <div class="col-sm-5">
+                    {{d_form.korsatma_rasm_qogoz}}
+                </div>
+                <div class="col-sm-5">
+                    {{d_form.korsatma_rasm_odam}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Huquqbuzarlik rasmlari</label>
+                <div class="col-sm-10">
+                    <input type="file" name="rasmlar[]" id="rasmlar" accept="image/*" class="form-control" multiple>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" type="submit" id="saqlash">Saqlash</button>
+
+        </form>
+
+    </div>
+    <!-- /.row-->
+</div>
+{% endblock main %}
+
+
+{% block customcss %}
+<link href="{% static 'vendors/filepond/filepond.css' %}" rel="stylesheet">
+<link href="{% static 'vendors/filepond/filepond-plugin-image-preview.css' %}" rel="stylesheet">
+
+<!-- <style>
+    .filepond--root,
+    .filepond--root .filepond--drop-label {
+        width: 200px !important;
+    }
+</style> -->
+{% endblock customcss %}
+
+{% block customjs %}
+<!-- FilePond Stuff -->
+<script src="{% static 'vendors/filepond/filepond.js' %} "></script>
+<script src="{% static 'vendors/filepond/filepond-plugin-file-validate-size.js' %} "></script>
+<script src="{% static 'vendors/filepond/filepond-plugin-file-validate-type.js' %} "></script>
+<script src="{% static 'vendors/filepond/filepond-plugin-image-preview.js' %} "></script>
+<!-- <script src="{% static 'vendors/filepond/filepond-plugin-image-resize.js' %} "></script> -->
+<!-- <script src="{% static 'vendors/filepond/filepond-plugin-image-transform.js' %} "></script> -->
+
+
+<script>
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(showPosition);
+        } else {
+            geoinfo.innerHTML = "Geolokatsiya aniqlashning imkoni mavjud emas";
+        }
+    }
+    function showPosition(position) {
+        id_lat.value = position.coords.latitude;
+        id_lng.value = position.coords.longitude;
+        geoinfo.innerHTML = "Geolokatsiya topildi";
+        // console.log(position.coords.latitude, position.coords.longitude)
+    }
+
+    //tumanlarni olish
+    id_viloyat.addEventListener('change', function () {
+        let viloyat_id = this.value;
+        let fd = new FormData();
+        fd.append('idv', viloyat_id);
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        $.ajax({
+            type: 'POST',
+            url: '{% url "tuman_list" %}',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                $('#id_tuman').empty();
+                $.each(res.tumanlar, function (i, tuman) {
+                    $('#id_tuman').append(`<option value="${tuman[0]}">${tuman[1]}</option>`);
+                });
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ":" + xhr.responseText)
+            }
+        })
+    })
+    // formani saqlash
+    document.addEventListener('DOMContentLoaded', function () {
+        // $('#id_tuman').empty();
+
+        let files = [], kodam, krasm;
+        FilePond.registerPlugin(FilePondPluginFileValidateSize);
+        FilePond.registerPlugin(FilePondPluginFileValidateType);
+        FilePond.registerPlugin(FilePondPluginImagePreview);
+        // FilePond.registerPlugin(FilePondPluginImageResize);
+        // FilePond.registerPlugin(FilePondPluginImageTransform);
+        FilePond.setOptions({
+            maxFiles: 10,
+            maxFileSize: '10MB',
+            instantUpload: false,
+            allowProcess: false
+        })
+        const korsatma_qogoz = document.querySelector('#id_korsatma_rasm_qogoz');
+        const korsatma_odam = document.querySelector('#id_korsatma_rasm_odam');
+        const rasmlar = document.querySelector('#rasmlar');
+        FilePond.create(korsatma_odam, {
+            multiple: false,
+            acceptedFileTypes: ['image/png', 'image/jpeg'],
+            // imageResizeTargetWidth: 2000,
+            labelIdle: 'Rasmlarni yuklang: JPG, PNG formatda, maksimal hajmi 10 MB',
+            onaddfile: (err, fileItem) => {
+                if (!err) {
+                    kodam = fileItem.file
+                }
+            },
+            onremovefile: (err, fileItem) => {
+                const index = files.indexOf(fileItem.file)
+                if (index > -1) {
+                    kodam = undefined
+                }
+            }
+        });
+        FilePond.create(korsatma_qogoz, {
+            multiple: false,
+            acceptedFileTypes: ['image/png', 'image/jpeg'],
+            // imageResizeTargetWidth: 2000,
+            labelIdle: 'Rasmlarni yuklang: JPG, PNG formatda, maksimal hajmi 10 MB',
+            onaddfile: (err, fileItem) => {
+                if (!err) {
+                    krasm = fileItem.file
+                }
+            },
+            onremovefile: (err, fileItem) => {
+                const index = files.indexOf(fileItem.file)
+                if (index > -1) {
+                    krasm = undefined
+                }
+            }
+        });
+        const pond_rasmlar = FilePond.create(rasmlar, {
+            multiple: true,
+            acceptedFileTypes: ['image/png', 'image/jpeg'],
+            // imageResizeTargetWidth: 2000,
+            labelIdle: 'Rasmlarni yuklang: JPG, PNG formatda, maksimal hajmi 10 MB',
+            onaddfile: (err, fileItem) => {
+                if (!err) {
+                    files.push(fileItem.file)
+                }
+                // console.log(files)
+            },
+            onremovefile: (err, fileItem) => {
+                const index = files.indexOf(fileItem.file)
+                if (index > -1) {
+                    files.splice(index, 1)
+                }
+                // console.log(files)
+            }
+        });
+        //formani jo'natish
+        $("#myform").submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(document.querySelector('form'));
+            // formData.append('length', files.length)
+            if (kodam)
+                formData.append('korsatma_rasm_odam', kodam)
+            if (krasm)
+                formData.append('korsatma_rasm_qogoz', krasm)
+            for (var i = 0; i < files.length; i++) {
+                formData.append('rasmlar[]', files[i])
+            }
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            $.ajax({
+                type: 'POST',
+                url: '{% url "dalolatnoma_new" %}',
+                data: formData,
+                cache: false,
+                processData: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                success: function (data) {
+                    console.log(data)
+                    // console.log('The post has been created!')
+                    if (data.message === "Bexato") {
+                        window.location.href = "{% url 'dalolatnoma_list' %}"
+                    }
+                    else {
+
+                    }
+                },
+                error: function (xhr, errmsg, err) {
+                    console.log(xhr.status + ":" + xhr.responseText)
+                }
+            })
+        })
+    })
+</script>
+
+{% endblock customjs %}
