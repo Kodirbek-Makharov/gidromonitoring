@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import connection
+from django.urls import resolve
 from .models import Noqonuniy_holat_turi, Viloyat, Tuman, Stansiya, Dalolatnoma, DalolatnomaRasm
 from .forms import DalolatnomaForm
 from .middleware import login_exempt
@@ -505,6 +506,10 @@ def dalolatnoma_new(request):
 
 @user_passes_test(lambda u: not has_group(u, 'inspektor'))
 def dalolatnoma_bartaraf_etildi(request, id):
+    referer_url = request.META.get('HTTP_REFERER', '') 
+    if referer_url:
+        value = referer_url.rstrip('/').split('/')[-1]
+
     dalolatnoma = get_object_or_404(Dalolatnoma.objects, pk=id)
     try:
         brt_file = request.FILES.get('file')
@@ -514,7 +519,12 @@ def dalolatnoma_bartaraf_etildi(request, id):
         messages.info(request, "Bartaraf etilganligi hujjati saqlandi.")
     except:
         messages.error(request, "Bartaraf etilganligi hujjatini saqlashda xatolik.")
-    return redirect('dalolatnoma_list')
+    
+    if value=='list':
+        return redirect('dalolatnoma_list')
+    else:
+        return redirect('dalolatnoma_one', value)
+
 
 @user_passes_test(lambda u: not has_group(u, 'inspektor') and not has_group(u, 'inspeksiya'))
 def dalolatnoma_bartaraf_etildi_admin(request, id):

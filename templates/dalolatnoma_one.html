@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load my_filters %}
 {% load static %}
 
 
@@ -73,6 +74,27 @@
                         <a href="{{ d.bartaraf_etilganligi_hujjati.url|default_if_none:'#' }}" target="_blank">Faylni ko'rish</a>
                         {% else %}
                         (muddati: {{d.amal_qilish_muddati|date:"Y.m.d"}}) <br>
+
+                        {% if d.bartaraf_etilganligi_hujjati.name %}
+                        <a href="{{d.bartaraf_etilganligi_hujjati.url}}">Hujjatni ko'rish</a>
+                        {% if request.user|has_group:"administrator" or request.user.is_superuser %}
+                        <br><a href="{% url 'bartaraf_etildi_admin' d.pk %}">Tasdiqlash</a>
+
+                        {% endif %}
+                        {% else %}
+
+                        {% if request.user|has_group:"inspeksiya" or request.user.is_superuser %}
+                        <form action="{% url 'bartaraf_etildi' d.pk %}" method="post" enctype="multipart/form-data" style="margin-top: 10px;">
+                            {% csrf_token %}
+                            <input type="file" name="file" id="file-{{d.pk}}" class="inputfile inputfile-2" required>
+                            <label for="file-{{d.pk}}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
+                                    <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"></path>
+                                </svg> <span>Faylni tanlash</span></label><br>
+                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                        </form>
+                        {% endif %}
+                        {% endif %}
+
                         {% endif %}
                     </div>
                 </div>
@@ -111,8 +133,71 @@
         filter: hue-rotate(240deg);
     }
 </style>
+<style>
+    .inputfile {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+    }
+
+    .inputfile-2+label {
+        color: #d3394c;
+        border: 2px solid currentColor;
+    }
+
+    .inputfile-2:focus+label,
+    .inputfile-2.has-focus+label,
+    .inputfile-2+label:hover {
+        color: #722040;
+    }
+
+    .inputfile+label {
+        max-width: 80%;
+        font-size: 1rem;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        display: inline-block;
+        overflow: hidden;
+        padding: 0.5rem 1.2rem;
+    }
+
+    .inputfile+label svg {
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+        fill: currentColor;
+        margin-top: -0.25em;
+        margin-right: 0.25em;
+    }
+</style>
 {% endblock customcss %}
 {% block customjs %}
+<script>
+    $('.inputfile').change(function (e) {
+        var name = $(this);
+
+        elem = name[0];
+        let label = elem.nextElementSibling;
+        label.querySelector('span').innerHTML = fileName;
+        labelVal = label.innerHTML;
+
+        var fileName = '';
+        fileName = elem.value.split('\\').pop();
+
+        if (fileName)
+            label.querySelector('span').innerHTML = fileName;
+        else
+            label.innerHTML = labelVal;
+
+    });
+</script>
+
+
 <script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
 <script>
     const lat = parseFloat("{{ d.lat }}");
@@ -120,9 +205,6 @@
     console.log(lat, lng);
     var map = L.map('map').setView([lat, lng], 15);
     var marker = L.marker([lat, lng]).addTo(map);
-    // var marker = L.marker([lat + 0.005, lng]).addTo(map);
-    // marker._icon.classList.add("qizilmarker");
-    // marker.bindPopup("<a href='http://kiut.uz'>Hello world!</a><br>I am a popup.");//.openPopup();
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
