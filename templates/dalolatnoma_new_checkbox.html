@@ -254,6 +254,15 @@
 
     // formani saqlash
     document.addEventListener('DOMContentLoaded', function () {
+
+        let a = document.getElementById("id_noqonuniy_holat_turi");
+        let chs = '';
+        for (let i = 1; i < a.length; i++) {
+            let option = a.options[i];
+            chs += `<input name='noqonuniy_holat_turi' type='checkbox' value=${option.value} class='form-input-check'> ${option.text} <br>`;
+        }
+        a.parentNode.innerHTML = chs;
+
         // $('#id_tuman').empty();
 
         let files = [], kodam, krasm;
@@ -358,6 +367,8 @@
                             if (value[0].code == 'invalid') error_text = "Qiymat xato kiritildi";
                             if (value[0].code == 'unique') error_text = "Qiymat bazada mavjud";
                             if (value[0].code == 'required') error_text = "Qiymat tanlash kerak";
+                            // console.log(key);
+                            // console.log(value[0].code);
                             let error_label = document.getElementById(`${key}_label`).innerText ?? key;
                             xatolar.innerHTML += `<p><b>${error_label}:</b> ${error_text}</p>`;
                         }

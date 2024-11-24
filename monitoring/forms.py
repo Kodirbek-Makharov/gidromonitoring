@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Viloyat, Dalolatnoma, DalolatnomaRasm
+from .models import Viloyat, Dalolatnoma, DalolatnomaRasm, Noqonuniy_holat_turi
 import datetime
 
 class DalolatnomaForm(ModelForm):
@@ -8,13 +8,14 @@ class DalolatnomaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for myField in self.fields:
+            # if myField!='noqonuniy_holat_turi':# or True:
             self.fields[myField].widget.attrs['class'] = 'form-control'
         self.fields['korsatma_sana'].initial = datetime.datetime.today
         self.fields['amal_qilish_muddati'].initial = datetime.datetime.today() + datetime.timedelta(days=14)
         self.fields['huquqbuzar_stir'].widget.attrs['oninput'] = "this.value = this.value.replace(/\D+/g, '')"
         self.fields['huquqbuzar_stir'].widget.attrs['inputmode'] = "numeric"
 
-
+    # noqonuniy_holat_turi = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple(), queryset=Noqonuniy_holat_turi.objects.all())
     viloyat = forms.ModelChoiceField(widget=forms.Select(attrs={"class":"form-control"}),required=False, queryset=Viloyat.objects.all())
     # thumbnail = forms.ImageField(widget=forms.FileInput(attrs={"class":"form-control"}))
     # description = forms.CharField(widget=forms.Textarea(attrs={"class":"form-control", "placeholder":"Product's description"}))

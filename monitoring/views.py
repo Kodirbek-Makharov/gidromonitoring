@@ -532,3 +532,70 @@ def dalolatnoma_bartaraf_etildi_admin(request, id):
 
 
 
+@user_passes_test(lambda u: not has_group(u, 'inspeksiya'))
+def dalolatnoma_new_checkbox(request):
+    dform = DalolatnomaForm()
+    
+    if request.method == 'POST':
+        
+        k_qogoz = request.FILES.get('korsatma_rasm_qogoz')
+        k_odam = request.FILES.get('korsatma_rasm_odam')
+        rasmlar = request.FILES.getlist('rasmlar[]')
+        nhtlar = request.POST.getlist('noqonuniy_holat_turi')
+        krr = request.POST.get('korsatma_raqam')
+        birinchi = False
+        if len(nhtlar)==0:
+            dform = DalolatnomaForm(request.POST, request.FILES)
+            # dform.add_error('noqonuniy_holat_turi', "Birorta noqonuniy holat tanlanishi kerak!")
+            return JsonResponse({"message": "Xato", "errors": dform.errors.as_json()})
+
+        # birinchisini saqlab qolganlarni shuni kopiyasini yaratish pk=NULL keyin save()
+        for i in range(len(nhtlar)):
+            print(nhtlar[i])
+            request.POST._mutable = True
+            request.POST['noqonuniy_holat_turi']=nhtlar[i]
+            request.POST._mutable = False
+            dform = DalolatnomaForm(request.POST, request.FILES)
+            stansiya_prefix = Stansiya.objects.filter(pk=dform.data['stansiya']).first().seriya
+            kr0 = stansiya_prefix + krr
+            if (len(nhtlar)>1):
+                kr = kr0 + "-" + str(i+1)
+            else: 
+                kr = kr0
+            dform.data._mutable = True
+            dform.data['korsatma_raqam'] = kr
+            dform.data._mutable = False
+            if birinchi == False:
+                birinchi=True
+                if dform.is_valid():
+                    dalolatnoma = dform.save(commit=False)
+                    dalolatnoma.inspektor = request.user
+                    dalolatnoma.save()
+                    messages.success(request, "Dalolatnoma created successfully")
+                    
+                    for file in rasmlar:
+                        DalolatnomaRasm.objects.create(dalolatnoma=dalolatnoma, rasm=file)
+                    storage = messages.get_messages(request)
+                    storage.used = True
+                else:
+                    print(dform.errors)
+                    return JsonResponse({"message": "Xato", "errors": dform.errors.as_json()})
+            else:
+                drs = DalolatnomaRasm.objects.filter(dalolatnoma=dalolatnoma).all()
+                print(drs)
+                nextd = dalolatnoma
+                nextd.pk = None
+                nextd.korsatma_raqam = kr
+                nextd.noqonuniy_holat_turi=Noqonuniy_holat_turi.objects.filter(pk=nhtlar[i]).first()
+                nextd.save()
+                for dr in drs:
+                    dr.pk=None
+                    dr.dalolatnoma=nextd
+                    print(dr)
+                    print("=========================")
+                    dr.save()
+
+        return JsonResponse({"message": "Bexato"})
+    
+    context = {"d_form": dform}
+    return render(request, "dalolatnoma_new_checkbox.html", context)
