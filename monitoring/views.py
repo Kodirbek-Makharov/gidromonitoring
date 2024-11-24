@@ -7,6 +7,9 @@ from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import connection
 from django.urls import resolve
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+
 from .models import Noqonuniy_holat_turi, Viloyat, Tuman, Stansiya, Dalolatnoma, DalolatnomaRasm
 from .forms import DalolatnomaForm
 from .middleware import login_exempt
@@ -127,6 +130,20 @@ def logout(request):
     # messages.info(request, "You have successfully logged out.")
     return redirect("login")
 
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user) 
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('index')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+        print(form)
+    return render(request, 'change_password.html', {'form': form})
 
 @user_passes_test(lambda u: not has_group(u, 'inspektor'))
 def index(request):

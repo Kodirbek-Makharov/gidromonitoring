@@ -15,4 +15,5 @@ urlpatterns = [
     path("api/stansiya-seriya", views.stansiya_seriya, name="stansiya_seriya"),    
     path("login", views.login, name="login"),
     path("logout", views.logout, name="logout"),
+    path("change-password", views.change_password, name="chp"),
 ]
