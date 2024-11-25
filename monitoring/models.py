@@ -84,6 +84,8 @@ class Dalolatnoma(models.Model):
         return f"korsatma/{_now.strftime('%Y')}/{_now.strftime('%m')}/{filename}"
 
     noqonuniy_holat_turi = models.ForeignKey(Noqonuniy_holat_turi, on_delete=models.CASCADE)
+    maqsadi = models.CharField("Suvdan foydalanish maqsadi", max_length=255, null=True, blank=True, choices=[("Xo'jalik-ichimlik","Xo'jalik-ichimlik"), ("Ishlab chiqarish-texnik", "Ishlab chiqarish-texnik"), ("Sug'orish", "Sug'orish"), ("Davolash-balneologik", "Davolash-balneologik"), ("Drenaj", "Drenaj")])
+    miqdori = models.FloatField("Suv olish miqdori", null=True, blank=True)
     huquqbuzar_turi = models.CharField(max_length=25, choices=[('jismoniy', "Jismoniy shaxs"),('yuridik', "Yuridik shaxs")])
     huquqbuzar_nomi = models.CharField(max_length=255)
     huquqbuzar_stir = models.CharField(max_length=100)

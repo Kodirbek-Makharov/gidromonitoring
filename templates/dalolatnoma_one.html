@@ -16,6 +16,16 @@
                     <div class="col-sm-2">Noqonuniy holat</div>
                     <div class="col-sm-10">{{d.noqonuniy_holat_turi}}</div>
                 </div>
+                {% if d.noqonuniy_holat_turi_id == 4 or d.noqonuniy_holat_turi_id == 6 %}
+                <div class="row mb-3">
+                    <div class="col-sm-2">Suvdan foydalanish maqsadi</div>
+                    <div class="col-sm-10">{{d.maqsadi|default:""}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-2">Suv olish miqdori</div>
+                    <div class="col-sm-10">{{d.miqdori|default:""}}</div>
+                </div>
+                {% endif %}
                 <div class="row mb-3">
                     <div class="col-sm-2">Huquqbuzar turi</div>
                     <div class="col-sm-10">{{d.huquqbuzar_turi}}</div>

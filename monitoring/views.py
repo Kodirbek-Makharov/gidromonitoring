@@ -381,13 +381,13 @@ def export_to_excel(request, queryset):
     ws.title = "Noqonuniy holatlar"
 
     # Add headers
-    headers = ["№    ","Noqonuniy holat turi", "Huquqbuzar turi", "Huquqbuzar nomi", "Huquqbuzar STIR",
+    headers = ["№    ","Noqonuniy holat turi","Suvdan foydalanish maqsadi","Suv olish miqdori", "Huquqbuzar turi", "Huquqbuzar nomi", "Huquqbuzar STIR",
                "Viloyat", "Tuman", "Orientir", "Stansiya", "Inspektor", "Korsatma", 
                "Sana", "Amal qilish muddati", "Bartaraf etilganligi"]
     ws.append(headers)
 
     for i, obj in enumerate( queryset):
-        ws.append([i, obj.noqonuniy_holat_turi.nomi, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
+        ws.append([i, obj.noqonuniy_holat_turi.nomi, obj.maqsadi, obj.miqdori, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
                    obj.tuman.nomi, obj.tuman.viloyat.nomi, obj.orientir, obj.stansiya.nomi, obj.inspektor.first_name if obj.inspektor.first_name else obj.inspektor.username,
                    obj.korsatma_raqam, str(obj.korsatma_sana), str(obj.amal_qilish_muddati), "Bartaraf etilgan" if obj.bartaraf_etilganligi is True else "Bartaraf etilgaman"])
 

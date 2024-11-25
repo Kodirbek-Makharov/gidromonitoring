@@ -26,6 +26,22 @@
                 </div>
             </div>
 
+            <div id="mm" style="display: none;">
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" id="maqsadi_label">{{d_form.maqsadi.label}}</label>
+                    <div class="col-sm-10">
+                        {{d_form.maqsadi}}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" id="miqdori_label">{{d_form.miqdori.label}}</label>
+                    <div class="col-sm-10">
+                        {{d_form.miqdori}}
+                    </div>
+                </div>
+            </div>
+
             <div class="row mb-3">
                 <label class="col-sm-2 col-form-label" id="huquqbuzar_turi_label">{{d_form.huquqbuzar_turi.label}}</label>
                 <div class="col-sm-10">
@@ -206,7 +222,14 @@
             // });
         }
     })
-
+    document.getElementById('id_noqonuniy_holat_turi').addEventListener('change', function () {
+        if (this.value == 4 || this.value == 6) {
+            mm.style = "display:block";
+        }
+        else {
+            mm.style = "display:none";
+        }
+    })
     //tumanlarni olish
     id_viloyat.addEventListener('change', function () {
         let viloyat_id = this.value;
