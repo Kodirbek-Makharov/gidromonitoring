@@ -39,13 +39,13 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'dalolatnoma_list' %}">
                     <svg class="nav-icon">
                         <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-drop"></use>
-                    </svg> Dalolatnomalar</a></li>
+                    </svg>Ko'rsatmalar</a></li>
 
             {% if request.user|has_group:"inspektor" %}
             <li class="nav-item"><a class="nav-link" href="{% url 'dalolatnoma_new' %}">
                     <svg class="nav-icon">
                         <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-drop"></use>
-                    </svg>Yangi dalolatnoma</a></li>
+                    </svg>Yangi ko'rsatma</a></li>
             {% endif %}
         </ul>
         <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>

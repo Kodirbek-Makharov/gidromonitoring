@@ -13,7 +13,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between">
                 <div>
-                    <h4 class="card-title mb-0">Dalolatnomalar ro'yxati</h4>
+                    <h4 class="card-title mb-0">Ko'rsatmalar ro'yxati</h4>
                     Barchasi: {{ count_all }}<br>
                     Bartaraf etilganlar: {{ count_done }}<br>
                     Jarayonda: {{ count_progress }}<br>
@@ -327,7 +327,7 @@
         // location.reload(true);
         document.getElementById('info_ws').innerHTML += `
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <a href="/${id}"><strong>Yangi dalolatnoma: </strong> ${message} (${inspektor}).</a>
+            <a href="/${id}"><strong>Yangi ko'rsatma: </strong> ${message} (${inspektor}).</a>
             <button type="button" class="btn-close" data-coreui-dismiss="alert" aria-label="Close"></button>
         </div>`;
         console.log(message);
