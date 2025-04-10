@@ -111,14 +111,14 @@
                 <div class="row mb-3">
                     <div class="col-sm-2">Rasmlar</div>
                     <div class="col-sm-10">
-                        <a href="/uploads/{{d.korsatma_rasm_qogoz}}" data-lightbox="gallery">
+                        <a href="/uploads/{{d.korsatma_rasm_qogoz}}" data-fancybox="gallery">
                             <img src="/uploads/{{d.korsatma_rasm_qogoz}}" alt="ko'rsatma-qog'oz">
                         </a>
-                        <a href="/uploads/{{d.korsatma_rasm_odam}}" data-lightbox="gallery">
+                        <a href="/uploads/{{d.korsatma_rasm_odam}}" data-fancybox="gallery">
                             <img src="/uploads/{{d.korsatma_rasm_odam}}" alt="ko'rsatma-odam">
                         </a>
                         {% for p in d.dalolatnomarasm_set.all %}
-                        <a href="/uploads/{{p.rasm}}" data-lightbox="gallery">
+                        <a href="/uploads/{{p.rasm}}" data-fancybox="gallery">
                             <img src="/uploads/{{p.rasm}}" alt="">
                         </a>
                         {% endfor %}
@@ -197,6 +197,26 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('[data-fancybox="gallery"]').fancybox({
+            zoom: true,
+            buttons: [
+                "zoom",
+                "fullScreen",
+                "download",
+                "share",
+                "close"
+            ],
+            loop: true,
+        });
+    });
+
+</script>
+
 <script>
     $('.inputfile').change(function (e) {
         var name = $(this);
@@ -222,7 +242,6 @@
 <script>
     const lat = parseFloat("{{ d.lat }}");
     const lng = parseFloat("{{ d.lng }}");
-    console.log(lat, lng);
     var map = L.map('map').setView([lat, lng], 15);
     var marker = L.marker([lat, lng]).addTo(map);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

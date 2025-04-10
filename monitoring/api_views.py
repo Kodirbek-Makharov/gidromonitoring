@@ -18,11 +18,17 @@ import django_filters
 #         return Response(serializer.data)
 
 class ApiDalolatnomaList(generics.ListCreateAPIView):
-    queryset = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').order_by('-korsatma_sana').all()
+    queryset = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').order_by('-korsatma_sana')
     serializer_class = DalolatnomaSerializer
     # filter_backends = [DjangoFilterBackend]
     # filterset_class = PersonFilter
-
+    def get_queryset(self):
+        queryset =super().get_queryset()
+        inspektor = self.request.query_params.get('inspektor')
+        if inspektor:
+            queryset = queryset.filter(inspektor=inspektor)
+        return queryset
+    
     def post(self, request):
         stansiya_prefix = Stansiya.objects.filter(pk=request.data['stansiya']).first().seriya
         serializer = DalolatnomaSerializer(data=request.data, context={'stansiya_prefix': stansiya_prefix})
