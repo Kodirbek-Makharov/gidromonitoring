@@ -5,5 +5,6 @@ urlpatterns = [
     # path("api/dalolatnoma-list", views.index, name="index"),
     path('dalolatnoma-list', av.ApiDalolatnomaList.as_view()),
     path('dalolatnoma-list/<int:pk>', av.ApiDalolatnomaShow.as_view()),
+    path('get-user', av.api_get_user),
 
 ]
