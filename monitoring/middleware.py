@@ -15,6 +15,9 @@ class LoginRequiredMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         if getattr(view_func, 'login_exempt', False):
             return
+        
+        if request.path.startswith('/api/'):
+            return
 
         if request.user.is_authenticated:
             return

@@ -16,8 +16,76 @@ from .middleware import login_exempt
 from django.http import HttpResponse
 from pprint import pprint
 import datetime 
-# from django.contrib.auth.decorators import login_required
-# Create your views here.
+
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework import status
+from .serializers import *
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
+
+# class aApiDalolatnomaList(APIView):
+#     def get(self, request):
+#         dalolatnoma = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').order_by('-korsatma_sana').all()
+#         serializer = DalolatnomaSerializer(dalolatnoma, many=True, context={'request': request})
+#         return Response(serializer.data)
+
+class ApiDalolatnomaList(generics.ListCreateAPIView):
+    queryset = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').order_by('-korsatma_sana').all()
+    serializer_class = DalolatnomaSerializer
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_class = PersonFilter
+
+    def post(self, request):
+        stansiya_prefix = Stansiya.objects.filter(pk=request.data['stansiya']).first().seriya
+        serializer = DalolatnomaSerializer(data=request.data, context={'stansiya_prefix': stansiya_prefix})
+        if serializer.is_valid():
+            print(serializer.validated_data)
+            # serializer.validated_data['korsatma_raqam'] = stansiya_prefix + "-" + serializer.validated_data['korsatma_raqam']
+            serializer.validated_data['inspektor'] = User.objects.get(pk=20)
+            factor=serializer.save()
+            
+            return Response({"status": "saved", "id": factor.pk }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ApiDalolatnomaShow(generics.RetrieveAPIView):
+    queryset = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').order_by('-korsatma_sana').all()
+    serializer_class = DalolatnomaSerializer
+
+
+# class ApiBemorShowEditDelete(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Patient.objects.all()
+#     serializer_class = PatientSerializer
+
+
+
+# class PersonFilter(django_filters.FilterSet):
+#     name = django_filters.CharFilter(lookup_expr='icontains') 
+#     jshshir = django_filters.CharFilter(lookup_expr='icontains') 
+#     pasportData = django_filters.CharFilter(lookup_expr='icontains') 
+#     homilaMuddati = django_filters.NumberFilter()
+#     birthDate = django_filters.DateFilter()
+
+#     class Meta:
+#         model = Patient
+#         fields = ['name', 'jshshir', 'pasportData', 'homilaMuddati', 'birthDate']
+
+
+# class ApiBemorListAdd(generics.ListCreateAPIView, generics.RetrieveAPIView):
+#     queryset = Patient.objects.order_by('name').all()
+#     serializer_class = PatientSerializer
+#     filter_backends = [DjangoFilterBackend]
+#     filterset_class = PersonFilter
+
+# class ApiBemorShowEditDelete(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Patient.objects.all()
+#     serializer_class = PatientSerializer
+
+
+
+
 
 
 def has_group(user, group):
@@ -368,40 +436,6 @@ def stansiya_seriya(request):
     seriya = Stansiya.objects.filter(pk=id_stansiya).first().seriya
     return JsonResponse({"seriya": seriya}) 
 
-def export_to_excel(request, queryset):
-    from openpyxl.styles import Font
-    from openpyxl import Workbook
-    from datetime import datetime
-    
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="gidromonitoring_'+datetime.now().strftime("%Y.%m.%d")+'.xlsx"'
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Noqonuniy holatlar"
-
-    # Add headers
-    headers = ["№    ","Noqonuniy holat turi","Suvdan foydalanish maqsadi","Suv olish miqdori", "Huquqbuzar turi", "Huquqbuzar nomi", "Huquqbuzar STIR",
-               "Viloyat", "Tuman", "Orientir", "Stansiya", "Inspektor", "Korsatma", 
-               "Sana", "Amal qilish muddati", "Bartaraf etilganligi"]
-    ws.append(headers)
-
-    for i, obj in enumerate( queryset):
-        ws.append([i, obj.noqonuniy_holat_turi.nomi, obj.maqsadi, obj.miqdori, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
-                   obj.tuman.nomi, obj.tuman.viloyat.nomi, obj.orientir, obj.stansiya.nomi, obj.inspektor.first_name if obj.inspektor.first_name else obj.inspektor.username,
-                   obj.korsatma_raqam, str(obj.korsatma_sana), str(obj.amal_qilish_muddati), "Bartaraf etilgan" if obj.bartaraf_etilganligi is True else "Bartaraf etilgaman"])
-
-    for column_cells in ws.columns:
-        length = max(len(str(cell.value)) for cell in column_cells)
-        ws.column_dimensions[column_cells[0].column_letter].width = length
-
-    header_font = Font(bold=True)
-    for cell in ws["1:1"]:
-        cell.font = header_font
-
-    wb.save(response)
-    return response
-
 def dalolatnoma_list(request):
     queryset = Dalolatnoma.objects.select_related("tuman__viloyat", 'noqonuniy_holat_turi', 'stansiya', 'inspektor').all().order_by('-korsatma_sana')
     viloyatlar = Viloyat.objects.all()
@@ -501,7 +535,7 @@ def dalolatnoma_new(request):
         dform = DalolatnomaForm(request.POST, request.FILES)
         stansiya_prefix = Stansiya.objects.filter(pk=dform.data['stansiya']).first().seriya
         dform.data._mutable = True
-        dform.data['korsatma_raqam'] = stansiya_prefix + "-" + dform.data['korsatma_raqam']
+        dform.data['korsatma_raqam'] = stansiya_prefix + dform.data['korsatma_raqam']
         dform.data._mutable = False
 
         if dform.is_valid():

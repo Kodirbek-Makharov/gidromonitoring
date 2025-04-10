@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path("api/", include("monitoring.api_urls")),
     path("", views.index, name="index"),
     # path("seed", views.seed, name="seed"),
     path("list", views.dalolatnoma_list, name="dalolatnoma_list"),
