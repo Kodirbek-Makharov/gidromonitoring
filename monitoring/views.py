@@ -9,7 +9,7 @@ from django.db import connection
 from django.urls import resolve
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
-
+from django.db.models import Count
 from .models import Noqonuniy_holat_turi, Viloyat, Tuman, Stansiya, Dalolatnoma, DalolatnomaRasm
 from .forms import DalolatnomaForm
 from .middleware import login_exempt
@@ -120,7 +120,6 @@ def login(request):
             messages.error(request, "Invalid username or password.")
 
     return render(request, "login.html")
-
 
 def logout(request):
     from django.contrib.auth import logout
@@ -381,13 +380,13 @@ def export_to_excel(request, queryset):
     ws.title = "Noqonuniy holatlar"
 
     # Add headers
-    headers = ["№    ","Noqonuniy holat turi","Suvdan foydalanish maqsadi","Suv olish miqdori", "Huquqbuzar turi", "Huquqbuzar nomi", "Huquqbuzar STIR",
+    headers = ["№","Noqonuniy holat turi","Suvdan foydalanish maqsadi","Suv olish miqdori", "Huquqbuzar turi", "Huquqbuzar nomi", "Huquqbuzar STIR",
                "Viloyat", "Tuman", "Orientir", "Stansiya", "Inspektor", "Korsatma", 
                "Sana", "Amal qilish muddati", "Bartaraf etilganligi"]
     ws.append(headers)
 
     for i, obj in enumerate( queryset):
-        ws.append([i, obj.noqonuniy_holat_turi.nomi, obj.maqsadi, obj.miqdori, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
+        ws.append([i+1, obj.noqonuniy_holat_turi.nomi, obj.maqsadi, obj.miqdori, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
                    obj.tuman.nomi, obj.tuman.viloyat.nomi, obj.orientir, obj.stansiya.nomi, obj.inspektor.first_name if obj.inspektor.first_name else obj.inspektor.username,
                    obj.korsatma_raqam, str(obj.korsatma_sana), str(obj.amal_qilish_muddati), "Bartaraf etilgan" if obj.bartaraf_etilganligi is True else "Bartaraf etilgaman"])
 
@@ -542,7 +541,6 @@ def dalolatnoma_bartaraf_etildi(request, id):
     else:
         return redirect('dalolatnoma_one', value)
 
-
 @user_passes_test(lambda u: not has_group(u, 'inspektor') and not has_group(u, 'inspeksiya'))
 def dalolatnoma_bartaraf_etildi_admin(request, id):
     dalolatnoma = get_object_or_404(Dalolatnoma.objects, pk=id)
@@ -554,10 +552,6 @@ def dalolatnoma_bartaraf_etildi_admin(request, id):
     except:
         messages.error(request, "Bartaraf etilganligi saqlashda xatolik.")
     return redirect('dalolatnoma_list')
-
-
-
-
 
 @user_passes_test(lambda u: not has_group(u, 'inspeksiya'))
 def dalolatnoma_new_checkbox(request):
@@ -626,3 +620,21 @@ def dalolatnoma_new_checkbox(request):
     
     context = {"d_form": dform}
     return render(request, "dalolatnoma_new_checkbox.html", context)
+
+@user_passes_test(lambda u: not has_group(u, 'inspektor') and not has_group(u, 'inspeksiya'))
+def user_list(request):
+    users = User.objects.filter(groups__name__in=['inspektor']).annotate(
+        dcount=Count('dalolatnoma')
+    ).order_by('first_name').all()
+    if request.method == "POST":
+        u = User.objects.filter(pk=request.POST.get('user_id')).first()
+        if u:
+            u.is_active = not u.is_active
+            u.save()
+    return render(request, 'user_list.html', {'users':users})
+
+
+
+
+
+

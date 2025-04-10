@@ -33,7 +33,12 @@
                                             <svg class="icon">
                                                 <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-lock-locked"></use>
                                             </svg></span>
-                                        <input class="form-control" type="password" placeholder="Password" name="password">
+                                        <input class="form-control" type="password" placeholder="Password" name="password" id="password">
+                                        <button class="btn btn-outline-secondary" type="button" onmousedown="showPassword()" onmouseup="hidePassword()" onmouseleave="hidePassword()">
+                                            <svg class="icon">
+                                                <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-low-vision"></use>
+                                            </svg>
+                                        </button>
                                     </div>
                                     <div class="row">
                                         <div class="col-6">
@@ -51,9 +56,14 @@
             </div>
         </div>
     </div>
-    <!-- CoreUI and necessary plugins-->
-    <script src="vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script>
+        function showPassword() {
+            document.getElementById('password').type = 'text';
+        }
+
+        function hidePassword() {
+            document.getElementById('password').type = 'password';
+        }
     </script>
 
 </body>

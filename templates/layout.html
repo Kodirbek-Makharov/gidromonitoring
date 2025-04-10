@@ -31,21 +31,28 @@
             {% if request.user|not_has_group:"inspektor" or request.user.is_superuser %}
             <li class="nav-item"><a class="nav-link" href="/">
                     <svg class="nav-icon">
-                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-speedometer"></use>
+                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-home"></use>
                     </svg> Bosh sahifa</a></li>
             {% endif %}
 
             <!-- <li class="nav-title">Theme</li> -->
             <li class="nav-item"><a class="nav-link" href="{% url 'dalolatnoma_list' %}">
                     <svg class="nav-icon">
-                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-drop"></use>
+                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-library"></use>
                     </svg>Ko'rsatmalar</a></li>
 
             {% if request.user|has_group:"inspektor" %}
             <li class="nav-item"><a class="nav-link" href="{% url 'dalolatnoma_new' %}">
                     <svg class="nav-icon">
-                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-drop"></use>
+                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-note-add"></use>
                     </svg>Yangi ko'rsatma</a></li>
+            {% endif %}
+
+            {% if request.user|has_group:"administrator" or request.user.is_superuser %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'user_list' %}">
+                    <svg class="nav-icon">
+                        <use xlink:href="{% static 'vendors/@coreui/icons/svg/free.svg' %}#cil-user"></use>
+                    </svg>Inspektorlar</a></li>
             {% endif %}
         </ul>
         <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>
@@ -116,10 +123,6 @@
     <script src="{% static 'vendors/@coreui/utils/js/coreui-utils.js' %}"></script>
 
     {% block customjs %}{% endblock customjs %}
-
-    <script>
-    </script>
-
 </body>
 
 </html>

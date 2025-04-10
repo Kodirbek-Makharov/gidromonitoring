@@ -111,10 +111,16 @@
                 <div class="row mb-3">
                     <div class="col-sm-2">Rasmlar</div>
                     <div class="col-sm-10">
-                        <img src="/uploads/{{d.korsatma_rasm_qogoz}}" alt="ko'rsatma-qog'oz">
-                        <img src="/uploads/{{d.korsatma_rasm_odam}}" alt="ko'rsatma-odam">
+                        <a href="/uploads/{{d.korsatma_rasm_qogoz}}" data-lightbox="gallery">
+                            <img src="/uploads/{{d.korsatma_rasm_qogoz}}" alt="ko'rsatma-qog'oz">
+                        </a>
+                        <a href="/uploads/{{d.korsatma_rasm_odam}}" data-lightbox="gallery">
+                            <img src="/uploads/{{d.korsatma_rasm_odam}}" alt="ko'rsatma-odam">
+                        </a>
                         {% for p in d.dalolatnomarasm_set.all %}
-                        <img src="/uploads/{{p.rasm}}" alt="">
+                        <a href="/uploads/{{p.rasm}}" data-lightbox="gallery">
+                            <img src="/uploads/{{p.rasm}}" alt="">
+                        </a>
                         {% endfor %}
                     </div>
                 </div>
@@ -187,6 +193,10 @@
 </style>
 {% endblock customcss %}
 {% block customjs %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
 <script>
     $('.inputfile').change(function (e) {
         var name = $(this);

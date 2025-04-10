@@ -5,6 +5,7 @@ urlpatterns = [
     path("api/", include("monitoring.api_urls")),
     path("", views.index, name="index"),
     # path("seed", views.seed, name="seed"),
+    path("inspektorlar", views.user_list, name="user_list"),
     path("list", views.dalolatnoma_list, name="dalolatnoma_list"),
     path("<int:id>", views.dalolatnoma_one, name="dalolatnoma_one"),
     path("<int:id>/eliminated", views.dalolatnoma_bartaraf_etildi, name="bartaraf_etildi"),

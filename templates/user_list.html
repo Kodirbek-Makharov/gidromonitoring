@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% load my_filters %}
+{% load static %}
+{% load tz %}
+
+{% block main %}
+<!-- {% include 'messages.html' %} -->
+<div class="container-lg">
+    {% if request.user|has_group:"administrator" or request.user.is_superuser %}
+    <div id="info_ws"></div>
+    {% endif %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h4 class="card-title mb-0">Inspektorlar ro'yxati</h4>
+                </div>
+            </div>
+            <table class="table table-hover table-vmiddle">
+                <thead class="thead-inverse">
+                    <tr>
+                        <th>Inspektor</th>
+                        <th>Ko'rsatmalar soni</th>
+                        <th>Aktivlik holati</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <td>{{ u.first_name }}</td>
+                    <td>{{ u.dcount }} {{ u.username }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{u.pk}}">
+                            <button type="submit" class="btn ">
+                                {% if u.is_active %} ✅ {% else %} ❌ {% endif %}
+                            </button>
+                        </form>
+                    </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-vmiddle {
+        vertical-align: middle;
+    }
+
+    .table-vmiddle td {
+        padding: 0 !important;
+    }
+</style>
+{% endblock main %}
