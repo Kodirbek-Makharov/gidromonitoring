@@ -48,7 +48,8 @@ class Stansiya(models.Model):
     nomi = models.CharField(max_length=200)
     seriya = models.CharField(max_length=20, null=True, blank=True)
     status = models.BooleanField(default=True)
-
+    soni = models.IntegerField(default=0)
+    
     class Meta:
         verbose_name = "Stansiya"
         verbose_name_plural = "Stansiyalar"

@@ -29,3 +29,5 @@ txaio==23.1.1
 typing_extensions==4.11.0
 tzdata==2024.1
 zope.interface==6.3
+shapely==2.1.0
+fastkml==1.1.0

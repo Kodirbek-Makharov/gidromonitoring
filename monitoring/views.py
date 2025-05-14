@@ -385,14 +385,27 @@ def export_to_excel(request, queryset):
                "Sana", "Amal qilish muddati", "Bartaraf etilganligi"]
     ws.append(headers)
 
-    for i, obj in enumerate( queryset):
+    for i, obj in enumerate(queryset):
         ws.append([i+1, obj.noqonuniy_holat_turi.nomi, obj.maqsadi, obj.miqdori, obj.huquqbuzar_turi, obj.huquqbuzar_nomi, obj.huquqbuzar_stir,
                    obj.tuman.nomi, obj.tuman.viloyat.nomi, obj.orientir, obj.stansiya.nomi, obj.inspektor.first_name if obj.inspektor.first_name else obj.inspektor.username,
-                   obj.korsatma_raqam, str(obj.korsatma_sana), str(obj.amal_qilish_muddati), "Bartaraf etilgan" if obj.bartaraf_etilganligi is True else "Bartaraf etilgaman"])
+                   obj.korsatma_raqam, str(obj.korsatma_sana), str(obj.amal_qilish_muddati), "Bartaraf etilgan" if obj.bartaraf_etilganligi is True else "Bartaraf etilgaman",
+                   '=HYPERLINK("{}", "{}")'.format(request.build_absolute_uri(obj.korsatma_rasm_qogoz.url), "Ko'rsatma rasmlari"),
+                   '=HYPERLINK("{}", "{}")'.format(request.build_absolute_uri(obj.korsatma_rasm_odam.url), "Ko'rsatma rasmlari"),
+                   ]+['=HYPERLINK("{}", "{}")'.format(request.build_absolute_uri(dr.rasm.url), "Huquqbuzarlik rasmlari")  for dr in obj.dalolatnomarasm_set.all() ])
 
     for column_cells in ws.columns:
         length = max(len(str(cell.value)) for cell in column_cells)
-        ws.column_dimensions[column_cells[0].column_letter].width = length
+        ws.column_dimensions[column_cells[0].column_letter].width = length + 3
+    ws.column_dimensions["Q"].width = 25
+    ws.column_dimensions["R"].width = 25
+    ws.column_dimensions["S"].width = 25
+    ws.column_dimensions["T"].width = 25
+    ws.column_dimensions["U"].width = 25
+    ws.column_dimensions["V"].width = 25
+    ws.column_dimensions["W"].width = 25
+    ws.column_dimensions["X"].width = 25
+    ws.column_dimensions["Y"].width = 25
+    ws.column_dimensions["Z"].width = 25
 
     header_font = Font(bold=True)
     for cell in ws["1:1"]:
@@ -488,6 +501,41 @@ def dalolatnoma_edit(request, id):
     dform = DalolatnomaForm(instance=dalolatnoma)
     return render(request, 'dalolatnoma_edit.html', {'d_form':dform,'d':dalolatnoma})
 
+def mm(lat, lng):
+    import xml.etree.ElementTree as ET
+    from zipfile import ZipFile
+    from shapely.geometry import Point, Polygon
+    import os
+    from django.conf import settings
+    
+    kmz_path = os.path.join(settings.BASE_DIR, 'static', 'maxsus.kmz')
+
+    with ZipFile(kmz_path, 'r') as kmz:
+        kml_filename = kmz.namelist()[0]
+        kml_content = kmz.read(kml_filename).decode('utf-8')
+
+    ns = {'kml': 'http://www.opengis.net/kml/2.2'}
+    root = ET.fromstring(kml_content)
+
+    polygons = []
+    for placemark in root.findall('.//kml:Placemark', ns):
+        for polygon in placemark.findall('.//kml:Polygon', ns):
+            coords_elem = polygon.find('.//kml:coordinates', ns)
+            if coords_elem is not None:
+                coord_sets = coords_elem.text.strip().split()
+                coords = [tuple(map(float, coord.split(',')[:2])) for coord in coord_sets]
+                polygons.append(coords)
+
+    point = Point(lng, lat)
+
+    inside = False
+    for coords in polygons:
+        poly = Polygon(coords)
+        if poly.contains(point):
+            inside = True
+            break
+    return inside
+
 @user_passes_test(lambda u: not has_group(u, 'inspeksiya'))
 def dalolatnoma_new(request):
     dform = DalolatnomaForm()
@@ -498,8 +546,21 @@ def dalolatnoma_new(request):
         k_odam = request.FILES.get('korsatma_rasm_odam')
         rasmlar = request.FILES.getlist('rasmlar[]')
         dform = DalolatnomaForm(request.POST, request.FILES)
-        stansiya_prefix = Stansiya.objects.filter(pk=dform.data['stansiya']).first().seriya
+        stansiya = Stansiya.objects.filter(pk=dform.data['stansiya']).first()
+        stansiya_prefix = stansiya.seriya
+        # stansiya_nomer = stansiya.soni
+        # bormi=True
+        # while bormi:
+        #     stansiya_nomer += 1
+        #     nechta = Dalolatnoma.objects.filter(korsatma_raqam=(stansiya_prefix + "-" + str(stansiya_nomer))).count()
+        #     if nechta == 0:
+        #         bormi=False
+        #         break
+        
+        # MM = mm(dform.data['lat'], dform.data['lng'])
+        # MM = "-M" if MM==True else ""
         dform.data._mutable = True
+        # dform.data['korsatma_raqam'] = stansiya_prefix + "-" + str(stansiya_nomer) + MM #dform.data['korsatma_raqam']
         dform.data['korsatma_raqam'] = stansiya_prefix + "-" + dform.data['korsatma_raqam']
         dform.data._mutable = False
 
@@ -508,12 +569,13 @@ def dalolatnoma_new(request):
             dalolatnoma.inspektor = request.user
             dalolatnoma.save()
             messages.success(request, "Dalolatnoma created successfully")
-            
+            # stansiya.soni = stansiya_nomer
+            # stansiya.save()
             for file in rasmlar:
                 DalolatnomaRasm.objects.create(dalolatnoma=dalolatnoma, rasm=file)
             storage = messages.get_messages(request)
             storage.used = True
-            return JsonResponse({"message": "Bexato"})
+            return JsonResponse({"message": "Bexato", "pk": dalolatnoma.pk})
             
         return JsonResponse({"message": "Xato", "errors": dform.errors.as_json()})
     

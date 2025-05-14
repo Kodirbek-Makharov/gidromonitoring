@@ -16,6 +16,9 @@ class LoginRequiredMiddleware:
         if getattr(view_func, 'login_exempt', False):
             return
         
+        if request.path.startswith('/uploads/'):
+            return
+
         if request.path.startswith('/api/'):
             return
 

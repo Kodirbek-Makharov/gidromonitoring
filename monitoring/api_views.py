@@ -59,7 +59,32 @@ def api_get_user(request):
         return Response({"user_id": user.id}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "User not found or inactive."}, status=status.HTTP_404_NOT_FOUND)
-    
+
+@api_view(['POST'])
+def api_get_viloyat(request):
+    items = Viloyat.objects.all()
+    data = [{'id': item.pk, 'nomi': item.nomi} for item in items]  
+    return Response(data)
+
+@api_view(['POST'])
+def api_get_tuman(request):
+    id_viloyat = request.query_params.get('idv')
+    tumanlar = Tuman.objects.filter(viloyat_id=id_viloyat).order_by('nomi').all()
+    data = [{'id': item.pk, 'nomi': item.nomi} for item in tumanlar]  
+    return Response(data)
+
+@api_view(['POST'])
+def api_get_nht(request):
+    items = Noqonuniy_holat_turi.objects.all()
+    data = [{'id': item.pk, 'nomi': item.nomi} for item in items]  
+    return Response(data)
+
+@api_view(['POST'])
+def api_get_stansiya(request):
+    items = Stansiya.objects.all()
+    data = [{'id': item.pk, 'nomi': item.nomi, 'seriya': item.seriya} for item in items]  
+    return Response(data)
+
 # class ApiBemorShowEditDelete(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Patient.objects.all()
 #     serializer_class = PatientSerializer
